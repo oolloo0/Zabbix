@@ -1,0 +1,93 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 399a7ddeefc34aa1b7441135e620d766
+      name: 'Windows servers'
+  templates:
+    - uuid: 353def6e174e4dee90e2e47a199c8d44
+      template: 'Zabbix Agent 2 Active - AD Events Monitoring'
+      name: 'Zabbix Agent 2 Active - AD Events Monitoring'
+      groups:
+        - name: 'Windows servers'
+      items:
+        - uuid: a522447ea4864f6e9f73814d74408438
+          name: 'Group Membership Change'
+          type: ZABBIX_ACTIVE
+          key: ad.group_membership
+          trends: '0'
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '900'
+          tags:
+            - tag: category
+              value: permissions
+            - tag: event_id
+              value: '4728,4729'
+          triggers:
+            - uuid: 235bb4e18c5948c08d6673d918193d8c
+              expression: 'last(/Zabbix Agent 2 Active - AD Events Monitoring/ad.group_membership)=1'
+              name: 'AD group membership modified'
+              priority: WARNING
+              tags:
+                - tag: severity
+                  value: high
+        - uuid: 3f506ede98bc43dda74a366ecd36b9e5
+          name: 'New AD User Detected'
+          type: ZABBIX_ACTIVE
+          key: ad.new_user
+          trends: '0'
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '900'
+          tags:
+            - tag: category
+              value: user_management
+            - tag: event_id
+              value: '4720'
+          triggers:
+            - uuid: 9d5adf1c58ca4b0abc8cb7f426eb9d35
+              expression: 'last(/Zabbix Agent 2 Active - AD Events Monitoring/ad.new_user)=1'
+              name: 'New user account created in AD'
+              priority: WARNING
+              tags:
+                - tag: severity
+                  value: high
+        - uuid: 94980a66f76f415f98e2d2b2c05abce0
+          name: 'Password Change Detected'
+          type: ZABBIX_ACTIVE
+          key: ad.password_change
+          trends: '0'
+          preprocessing:
+            - type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - '900'
+          tags:
+            - tag: category
+              value: security
+            - tag: event_id
+              value: '4724'
+          triggers:
+            - uuid: 46e8a845c37f4ae3b89bfaa835b3cee4
+              expression: 'last(/Zabbix Agent 2 Active - AD Events Monitoring/ad.password_change)=1'
+              name: 'AD password change detected'
+              priority: INFO
+              tags:
+                - tag: severity
+                  value: medium
+      discovery_rules:
+        - uuid: e86653beb90b48fd8f4ecfe09c58b1bb
+          name: 'AD Security Events Discovery'
+          type: ZABBIX_ACTIVE
+          key: ad.events.discovery
+          delay: 5m
+      tags:
+        - tag: application
+          value: 'Active Directory'
+        - tag: os
+          value: Windows
+      macros:
+        - macro: '{$AD_EVENT_INTERVAL}'
+          value: 5m
+          description: 'Check interval for AD events'
