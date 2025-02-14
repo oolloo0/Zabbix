@@ -36,15 +36,15 @@ Download and install the latest Zabbix Agent from Zabbix Downloads.
 Update the zabbix_agent2.conf file with the following parameters:
 ```
 Server=<ZABBIX_SERVER_IP>
-ServerActive=<ZABBIX_SERVER_IP>:31051
+ServerActive=<ZABBIX_SERVER_IP>:<TCP_PORT>
 Hostname=<DOMAIN_CONTROLLER_HOSTNAME>
 HostMetadata=Windows_AD_Monitoring
 ```
 Add custom UserParameters for PowerShell scripts:
 ```
-UserParameter=ad.new_user.details,powershell -ExecutionPolicy Bypass -File "C:\zabbix_scripts\check_new_ad_user_details.ps1"
-UserParameter=ad.password_change.details,powershell -ExecutionPolicy Bypass -File "C:\zabbix_scripts\check_password_change_details.ps1"
-UserParameter=ad.group_membership.details,powershell -ExecutionPolicy Bypass -File "C:\zabbix_scripts\check_group_membership_change_details.ps1"
+UserParameter=ad.new_user,powershell -ExecutionPolicy Bypass -File "C:\zabbix_scripts\check_new_ad_user.ps1"
+UserParameter=ad.password_change,powershell -ExecutionPolicy Bypass -File "C:\zabbix_scripts\check_password_change.ps1"
+UserParameter=ad.group_membership,powershell -ExecutionPolicy Bypass -File "C:\zabbix_scripts\check_group_membership_change.ps1"
 ```
 Restart the Zabbix Agent service:
 ```
@@ -55,7 +55,7 @@ Copy the PowerShell scripts from this repository (scripts/) to C:\zabbix_scripts
 Ensure the directory has appropriate permissions for the Zabbix Agent service account.
 5. Import Template into Zabbix
 Go to Configuration → Templates in your Zabbix web interface.
-Click Import and upload templates/template_ad_events_monitoring.yaml.
+Click Import and upload templates/template_ad_events.yaml.
 Assign this template to your domain controller host.
 6. Verify Setup
 Trigger an event in Active Directory (e.g., create a test user).
