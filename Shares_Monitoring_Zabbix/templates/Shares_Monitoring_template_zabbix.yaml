@@ -1,0 +1,27 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 399a7ddeefc34aa1b7441135e620d766
+      name: 'Windows servers'
+  templates:
+    - uuid: d379569fa97c43d4b5ec870164f81373
+      template: 'Zabbix Agent 2 Active - Open Files Monitoring'
+      name: 'Zabbix Agent 2 Active - Open Files Monitoring'
+      groups:
+        - name: 'Windows servers'
+      items:
+        - uuid: 32249f5945714ba2b3b4e079ce72d81c
+          name: 'Unauthorized Open Files'
+          type: ZABBIX_ACTIVE
+          key: unauthorized_openfiles
+          delay: 30s
+          value_type: TEXT
+          trends: '0'
+          triggers:
+            - uuid: 07459844595e43d1a8fe9011347d0259
+              expression: 'find(/Zabbix Agent 2 Active - Open Files Monitoring/unauthorized_openfiles,1m,"like","User")=1'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'find(/Zabbix Agent 2 Active - Open Files Monitoring/unauthorized_openfiles,1m,"like","User")=0'
+              name: 'Unauthorized File Access'
+              event_name: 'Unauthorized File Access: {ITEM.LASTVALUE}'
+              priority: HIGH
