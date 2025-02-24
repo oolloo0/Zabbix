@@ -14,11 +14,8 @@ zabbix_export:
           name: 'Group Membership Change'
           type: ZABBIX_ACTIVE
           key: ad.group_membership
+          value_type: TEXT
           trends: '0'
-          preprocessing:
-            - type: DISCARD_UNCHANGED_HEARTBEAT
-              parameters:
-                - '900'
           tags:
             - tag: category
               value: permissions
@@ -26,8 +23,8 @@ zabbix_export:
               value: '4728,4729'
           triggers:
             - uuid: 235bb4e18c5948c08d6673d918193d8c
-              expression: 'last(/Zabbix Agent 2 Active - AD Events Monitoring/ad.group_membership)=1'
-              name: 'AD group membership modified'
+              expression: 'find(/Zabbix Agent 2 Active - AD Events Monitoring/ad.group_membership,5,,"No group membership changes")=0'
+              name: 'AD group membership modified: {ITEM.LASTVALUE}'
               priority: WARNING
               tags:
                 - tag: severity
@@ -36,11 +33,8 @@ zabbix_export:
           name: 'New AD User Detected'
           type: ZABBIX_ACTIVE
           key: ad.new_user
+          value_type: TEXT
           trends: '0'
-          preprocessing:
-            - type: DISCARD_UNCHANGED_HEARTBEAT
-              parameters:
-                - '900'
           tags:
             - tag: category
               value: user_management
@@ -48,8 +42,8 @@ zabbix_export:
               value: '4720'
           triggers:
             - uuid: 9d5adf1c58ca4b0abc8cb7f426eb9d35
-              expression: 'last(/Zabbix Agent 2 Active - AD Events Monitoring/ad.new_user)=1'
-              name: 'New user account created in AD'
+              expression: 'find(/Zabbix Agent 2 Active - AD Events Monitoring/ad.new_user,5,,"No new user events")=0'
+              name: 'New AD user: {ITEM.LASTVALUE}'
               priority: WARNING
               tags:
                 - tag: severity
@@ -58,11 +52,8 @@ zabbix_export:
           name: 'Password Change Detected'
           type: ZABBIX_ACTIVE
           key: ad.password_change
+          value_type: TEXT
           trends: '0'
-          preprocessing:
-            - type: DISCARD_UNCHANGED_HEARTBEAT
-              parameters:
-                - '900'
           tags:
             - tag: category
               value: security
@@ -70,8 +61,8 @@ zabbix_export:
               value: '4724'
           triggers:
             - uuid: 46e8a845c37f4ae3b89bfaa835b3cee4
-              expression: 'last(/Zabbix Agent 2 Active - AD Events Monitoring/ad.password_change)=1'
-              name: 'AD password change detected'
+              expression: 'find(/Zabbix Agent 2 Active - AD Events Monitoring/ad.password_change,5,,"No password change events")=0'
+              name: 'AD password change: {ITEM.LASTVALUE}'
               priority: INFO
               tags:
                 - tag: severity
@@ -85,7 +76,7 @@ zabbix_export:
       tags:
         - tag: application
           value: 'Active Directory'
-        - tag: os
+        - tag: os  
           value: Windows
       macros:
         - macro: '{$AD_EVENT_INTERVAL}'
