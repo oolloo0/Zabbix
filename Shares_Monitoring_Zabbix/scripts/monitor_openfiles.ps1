@@ -4,25 +4,27 @@ $ZabbixHost = "ZPI-windows-test-lab"  # Hostname in Zabbix
 $Key = "unauthorized_openfiles"  # Zabbix item key
 $AllowedFolder = "D:\Shares\Management"  # Monitored folder
 $LogFile = "C:\zabbix_scripts\openfiles_result.log"
-        
+$AllowedGroup = "Management_Drive"  # Group that has permission to access the folder
+$Domain = "zpi.local"  # Active Directory domain
+
 # Check if the log file exists – if not, create an empty one
 if (!(Test-Path $LogFile)) {   
     New-Item -Path $LogFile -ItemType File -Force | Out-Null
 }
-        
+
 # Get the current timestamp
 $TimeStamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-         
+
 # Clear previous results
 $Results = @()
 
 # Retrieve the list of open files
 $OpenFilesRaw = openfiles /query /fo TABLE | Out-String
 $Lines = $OpenFilesRaw -split "`r`n"
-    
+
 # Find the index of the header row
 $DataStartIndex = ($Lines | Select-String -Pattern "ID\s+Accessed By\s+Type\s+Open File").LineNumber
-        
+
 # If no data is found → send "No unauthorized access detected" to Zabbix
 if ($DataStartIndex -eq $null) {
     $NoAccessEntry = "$TimeStamp | No unauthorized access detected"
@@ -40,9 +42,25 @@ foreach ($line in $Lines) {
         $FileID = $matches[1]
         $User = $matches[2]
         $FilePath = $matches[3]
-    
+
         # Check if exactly "D:\Shares\Management" folder is open
         if ($FilePath -eq $AllowedFolder) {
+            # Retrieve group membership of the user from Active Directory
+            try {
+                $UserGroups = (Get-ADUser -Identity "$User" -Properties MemberOf).MemberOf
+                $UserGroups = $UserGroups -replace '^CN=([^,]+),.*$', '$1'  # Extract group names from CN=
+            } catch {
+                Write-Host "WARNING: Unable to retrieve group membership for user $User"
+                $UserGroups = @()  # Set to an empty array to avoid errors
+            }
+
+            # Check if user belongs to the allowed group
+            if ($UserGroups -contains $AllowedGroup) {
+                Write-Host "INFO: $User is in the allowed group ($AllowedGroup). Ignoring access."
+                continue  # Skip logging and alerting
+            }
+
+            # If user is not in the allowed group, log and send to Zabbix
             $LogEntry = "$TimeStamp | User: $User | Folder: $FilePath"
             $Results += $LogEntry
         }
